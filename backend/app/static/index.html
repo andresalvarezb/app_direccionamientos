@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Direccionamientos</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --border: #d9dee8;
+      --text: #172033;
+      --muted: #64748b;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --danger: #b91c1c;
+      --ok: #047857;
+      --warn: #b45309;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      background: #0f172a;
+      color: white;
+      padding: 18px 28px;
+    }
+    header h1 { margin: 0; font-size: 22px; }
+    header p { margin: 5px 0 0; color: #cbd5e1; }
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 390px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    }
+    h2 { margin: 0 0 14px; font-size: 18px; }
+    label { display: block; font-weight: 700; margin-bottom: 7px; }
+    input, select, button {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      background: white;
+    }
+    button {
+      cursor: pointer;
+      background: var(--primary);
+      border: 1px solid var(--primary);
+      color: white;
+      font-weight: 700;
+    }
+    button:hover { background: var(--primary-dark); }
+    button.secondary {
+      background: #e2e8f0;
+      color: #0f172a;
+      border-color: #cbd5e1;
+    }
+    button.secondary:hover { background: #cbd5e1; }
+    .row { display: grid; grid-template-columns: 1fr 150px; gap: 10px; }
+    .space { height: 12px; }
+    .muted { color: var(--muted); font-size: 13px; }
+    .status {
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: 10px;
+      background: #f1f5f9;
+      white-space: pre-wrap;
+      font-size: 13px;
+    }
+    .status.ok { background: #ecfdf5; color: var(--ok); }
+    .status.error { background: #fef2f2; color: var(--danger); }
+    .status.warn { background: #fffbeb; color: var(--warn); }
+    .patient-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .field {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      min-height: 66px;
+    }
+    .field span { display: block; color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+    .field strong { font-size: 14px; word-break: break-word; }
+    .totals {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 12px 0 16px;
+    }
+    .total-box {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      background: #f8fafc;
+    }
+    .total-box span { display: block; color: var(--muted); font-size: 12px; }
+    .total-box strong { display: block; margin-top: 6px; font-size: 18px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      font-size: 13px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #f1f5f9;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .table-wrap {
+      max-height: 560px;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+    .category-line {
+      display: grid;
+      grid-template-columns: 1fr 130px 170px;
+      gap: 10px;
+      align-items: end;
+      margin: 8px 0 16px;
+    }
+    .hidden { display: none; }
+    @media (max-width: 1050px) {
+      .grid { grid-template-columns: 1fr; }
+      .patient-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .category-line { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Consulta de Direccionamientos</h1>
+    <p>Snapshot actual por carga diaria. Consulta por ID Ciclo Dispensación o Identificación del Paciente.</p>
+  </header>
+
+  <main>
+    <div class="grid">
+      <aside>
+        <section class="card">
+          <h2>1. Cargar archivo diario</h2>
+          <p class="muted">El archivo nuevo reemplaza completamente la foto actual de la base de datos.</p>
+          <form id="uploadForm">
+            <label for="fileInput">Archivo Excel o CSV</label>
+            <input id="fileInput" type="file" accept=".xlsx,.xls,.csv" required />
+            <div class="space"></div>
+            <button type="submit">Cargar archivo</button>
+          </form>
+          <div id="uploadStatus" class="status hidden"></div>
+        </section>
+
+        <div class="space"></div>
+
+        <section class="card">
+          <h2>2. Buscar registros</h2>
+          <label for="searchInput">Cédula o ID Ciclo</label>
+          <input id="searchInput" type="text" placeholder="Ej: 1068417032 o 12345..." />
+          <div class="space"></div>
+          <div class="row">
+            <select id="searchType">
+              <option value="auto">Auto</option>
+              <option value="documento">Identificación Paciente</option>
+              <option value="id_ciclo">ID Ciclo Dispensación</option>
+            </select>
+            <button id="searchBtn" type="button">Buscar</button>
+          </div>
+          <div id="searchStatus" class="status hidden"></div>
+        </section>
+
+        <div class="space"></div>
+
+        <section class="card">
+          <h2>Últimas cargas</h2>
+          <button class="secondary" id="refreshImports" type="button">Actualizar historial</button>
+          <div id="importsList" class="status">Sin consultar.</div>
+        </section>
+      </aside>
+
+      <section class="card">
+        <h2>Información del paciente</h2>
+        <div id="emptyState" class="status">Realiza una búsqueda para ver la información.</div>
+
+        <div id="resultsArea" class="hidden">
+          <div class="patient-grid">
+            <div class="field"><span>Identificación</span><strong id="pDocumento">-</strong></div>
+            <div class="field"><span>Tipo documento</span><strong id="pTipoDoc">-</strong></div>
+            <div class="field"><span>Nombre</span><strong id="pNombre">-</strong></div>
+            <div class="field"><span>EPS</span><strong id="pEps">-</strong></div>
+            <div class="field"><span>Municipio</span><strong id="pMunicipio">-</strong></div>
+            <div class="field"><span>Departamento</span><strong id="pDepartamento">-</strong></div>
+            <div class="field"><span>Categoría actual</span><strong id="pCategoria">-</strong></div>
+            <div class="field"><span>Registros encontrados</span><strong id="pTotal">0</strong></div>
+          </div>
+
+          <div class="category-line">
+            <div>
+              <label for="categorySelect">Categoría del paciente</label>
+              <select id="categorySelect">
+                <option value="">Seleccione...</option>
+                <option value="A">A - 11.5%</option>
+                <option value="B">B - 17.30%</option>
+                <option value="C">C - 23%</option>
+                <option value="Z">Z - 10%</option>
+              </select>
+            </div>
+            <button id="saveCategory" type="button">Guardar categoría</button>
+            <button id="reloadSearch" class="secondary" type="button">Reconsultar</button>
+          </div>
+
+          <div class="totals">
+            <div class="total-box"><span>Total registros</span><strong id="tRegistros">0</strong></div>
+            <div class="total-box"><span>Total valor direccionado</span><strong id="tValor">$0</strong></div>
+            <div class="total-box"><span>Total copago</span><strong id="tCopago">$0</strong></div>
+          </div>
+
+          <h2>Registros</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID Ciclo</th>
+                  <th>Prescripción</th>
+                  <th>Fecha Máxima</th>
+                  <th>Fecha Direcc.</th>
+                  <th>Código Tecnología</th>
+                  <th>Tecnología</th>
+                  <th>Cantidad</th>
+                  <th>Estado Paciente</th>
+                  <th>Estado Final</th>
+                  <th>Laboratorio</th>
+                  <th>Valor</th>
+                  <th>Categoría</th>
+                  <th>Copago</th>
+                </tr>
+              </thead>
+              <tbody id="recordsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    let lastQuery = null;
+    let lastType = 'auto';
+    let currentDocumento = null;
+    let currentIdCiclo = null;
+
+    const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 2 });
+
+    function $(id) { return document.getElementById(id); }
+    function safe(value) { return value === null || value === undefined || value === '' ? '-' : value; }
+    function decimal(value) { return value === null || value === undefined || value === '' ? 0 : Number(value); }
+
+    function showStatus(element, message, type = '') {
+      element.className = 'status ' + type;
+      element.textContent = message;
+      element.classList.remove('hidden');
+    }
+
+    async function parseResponse(response) {
+      const text = await response.text();
+      try { return JSON.parse(text); } catch { return { detail: text || response.statusText }; }
+    }
+
+    $('uploadForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const file = $('fileInput').files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('file', file);
+      showStatus($('uploadStatus'), 'Procesando archivo. No cierres esta pestaña...', 'warn');
+
+      try {
+        const response = await fetch('/api/imports/upload', { method: 'POST', body: formData });
+        const data = await parseResponse(response);
+        if (!response.ok) throw new Error(data.detail || 'Error cargando archivo');
+
+        showStatus(
+          $('uploadStatus'),
+          `Carga ${data.estado}\nBatch: ${data.id}\nFilas archivo: ${data.total_filas}\nInsertadas: ${data.filas_insertadas}\nRechazadas: ${data.filas_rechazadas}`,
+          data.filas_rechazadas > 0 ? 'warn' : 'ok'
+        );
+        loadImports();
+      } catch (err) {
+        showStatus($('uploadStatus'), err.message, 'error');
+      }
+    });
+
+    $('searchBtn').addEventListener('click', searchRecords);
+    $('searchInput').addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') searchRecords();
+    });
+    $('reloadSearch').addEventListener('click', () => {
+      if (lastQuery) searchRecords();
+    });
+
+    async function searchRecords() {
+      const query = $('searchInput').value.trim();
+      const tipo = $('searchType').value;
+      if (!query) {
+        showStatus($('searchStatus'), 'Escribe una cédula o un ID Ciclo.', 'error');
+        return;
+      }
+
+      lastQuery = query;
+      lastType = tipo;
+      showStatus($('searchStatus'), 'Buscando...', 'warn');
+
+      try {
+        const response = await fetch(`/api/registros?query=${encodeURIComponent(query)}&tipo=${encodeURIComponent(tipo)}`);
+        const data = await parseResponse(response);
+        if (!response.ok) throw new Error(data.detail || 'Error consultando registros');
+
+        renderResults(data);
+        showStatus($('searchStatus'), `Consulta finalizada. Registros encontrados: ${data.total}`, data.total ? 'ok' : 'warn');
+      } catch (err) {
+        showStatus($('searchStatus'), err.message, 'error');
+      }
+    }
+
+    function renderResults(data) {
+      $('emptyState').classList.add('hidden');
+      $('resultsArea').classList.remove('hidden');
+
+      const p = data.paciente || {};
+      currentDocumento = p.identificacion_paciente || null;
+      currentIdCiclo = data.registros?.[0]?.id_ciclo_dispensacion || null;
+
+      $('pDocumento').textContent = safe(p.identificacion_paciente);
+      $('pTipoDoc').textContent = safe(p.tipo_doc_paciente);
+      $('pNombre').textContent = safe(p.nombre);
+      $('pEps').textContent = safe(p.eps);
+      $('pMunicipio').textContent = safe(p.municipio);
+      $('pDepartamento').textContent = safe(p.departamento);
+      $('pCategoria').textContent = safe(p.categoria_actual);
+      $('pTotal').textContent = data.total;
+      $('categorySelect').value = p.categoria_actual || '';
+
+      $('tRegistros').textContent = data.total;
+      $('tValor').textContent = money.format(decimal(data.total_valor_direccionado));
+      $('tCopago').textContent = money.format(decimal(data.total_copago));
+
+      const rows = data.registros.map(r => `
+        <tr>
+          <td><span class="pill">${safe(r.id_ciclo_dispensacion)}</span></td>
+          <td>${safe(r.numero_prescripcion)}</td>
+          <td>${safe(r.fecha_maxima_entrega)}</td>
+          <td>${safe(r.fecha_direccionamiento)}</td>
+          <td>${safe(r.codigo_tecnologia_direccionada)}</td>
+          <td>${safe(r.tecnologia_direccionada)}</td>
+          <td>${safe(r.cantidad_total_entregar)}</td>
+          <td>${safe(r.estado_paciente)}</td>
+          <td>${safe(r.estado_final)}</td>
+          <td>${safe(r.laboratorio)}</td>
+          <td>${money.format(decimal(r.valor_direccionado))}</td>
+          <td>${safe(r.categoria)}</td>
+          <td>${money.format(decimal(r.copago))}</td>
+        </tr>
+      `).join('');
+
+      $('recordsBody').innerHTML = rows || '<tr><td colspan="13">Sin registros.</td></tr>';
+    }
+
+    $('saveCategory').addEventListener('click', async () => {
+      const categoria = $('categorySelect').value;
+      if (!categoria) {
+        showStatus($('searchStatus'), 'Selecciona una categoría.', 'error');
+        return;
+      }
+
+      const payload = { categoria };
+      if (currentDocumento) payload.identificacion_paciente = currentDocumento;
+      else if (currentIdCiclo) payload.id_ciclo_dispensacion = currentIdCiclo;
+      else {
+        showStatus($('searchStatus'), 'No hay paciente o registro seleccionado.', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/registros/categoria', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await parseResponse(response);
+        if (!response.ok) throw new Error(data.detail || 'Error actualizando categoría');
+
+        showStatus($('searchStatus'), `Categoría guardada. Registros actualizados: ${data.actualizados}. Porcentaje: ${data.porcentaje}%`, 'ok');
+        if (lastQuery) searchRecords();
+      } catch (err) {
+        showStatus($('searchStatus'), err.message, 'error');
+      }
+    });
+
+    $('refreshImports').addEventListener('click', loadImports);
+
+    async function loadImports() {
+      try {
+        const response = await fetch('/api/imports');
+        const data = await parseResponse(response);
+        if (!response.ok) throw new Error(data.detail || 'Error cargando historial');
+
+        if (!data.length) {
+          $('importsList').textContent = 'No hay cargas registradas.';
+          return;
+        }
+
+        $('importsList').innerHTML = data.slice(0, 8).map(item =>
+          `#${item.id} · ${item.estado}\n${item.filename}\nInsertadas: ${item.filas_insertadas} · Rechazadas: ${item.filas_rechazadas}\n${new Date(item.created_at).toLocaleString('es-CO')}`
+        ).join('\n\n');
+      } catch (err) {
+        showStatus($('importsList'), err.message, 'error');
+      }
+    }
+
+    loadImports();
+  </script>
+</body>
+</html>

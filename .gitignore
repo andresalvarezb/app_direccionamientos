@@ -1,0 +1,8 @@
+sample_data/
+Dockerfile
+backend/data/direccionamientos.db
+backend/uploads/
+backend/.env
+README.md
+venv/
+.env*
